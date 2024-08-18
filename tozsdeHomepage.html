@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tőzsde Játék</title>
+    <link rel="stylesheet" href="hompageStyles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">Tőzsde</div>
+        <nav>
+          <ul>
+            <li><a href="#" id="admin-link" onclick="openErrorModal()">Hiba bejelentés</a></li>
+          </ul>
+        </nav>
+    </header>
+
+    <section id="home" class="tartalom">
+        <div class="modal" id="adminModal">
+          <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Adminisztrátor jelszó</h2>
+            <input type="password" id="password">
+            <button onclick="checkPassword()">Belépés</button>
+          </div>
+        </div>
+        <div class="feketedoboz">
+          <h1>Üdvözöljük a Tőzsde Felületén!</h1>
+        </div>
+        <div id="userData">
+          <h2>Felhasználói adatok</h2>
+          <table class="wide-table">
+            <tbody id="userDataContainer">
+              <!-- User data fields will be injected here by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+        <div class="buttons">
+            <a href="#" class="mode-button" onclick="openModal()">Adminisztrátori Mód</a>
+        </div>
+        <div id="adminContent" style="display: none;">
+            <h2>Adatok módosítása</h2>
+            <form id="adminForm">
+                <table class="wide-table">
+                    <tbody id="adminFormContainer">
+                      <!-- Admin input fields will be injected here by JavaScript -->
+                    </tbody>
+                </table>
+                <button type="submit">Adatok mentése</button>
+            </form>
+        </div>
+        <!-- Hiba bejelentés űrlap -->
+        <div class="modal" id="errorModal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeErrorModal()">&times;</span>
+                <h2>Hiba bejelentése</h2>
+                <form id="errorForm">
+                    <div class="form-group">
+                        <label for="errorDescription">Hiba leírása:</label>
+                        <textarea id="errorDescription" name="errorDescription"></textarea>
+                    </div>
+                    <button type="submit">Hiba bejelentése</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Tőzsde Admin. Minden jog fenntartva.</p>
+        <p>Powered by: Urbán Gergely</p>
+    </footer>
+
+    <script>
+        const numFields = 12;
+        const fantasyNames = [
+            "Találj az edényekbe",
+            "Almahalászat",
+            "Fűszeres",
+            "Lufi költöztetés",
+            "Minél több annál jobb",
+            "Lufis pohárgyűjtés",
+            "Gumicukor vadászat",
+            "Torony építés",
+            "Hidegen fújnak a szelek",
+            "Krumpli hordás",
+            "Golyócsapda",
+            "Koala challenge"
+        ];
+        const adminModal = document.getElementById("adminModal");
+        const errorModal = document.getElementById("errorModal");
+
+        function openModal() {
+            adminModal.style.display = "block";
+        }
+
+        function closeModal() {
+            adminModal.style.display = "none";
+        }
+
+        function openErrorModal() {
+            errorModal.style.display = "block";
+        }
+
+        function closeErrorModal() {
+            errorModal.style.display = "none";
+        }
+
+        function checkPassword() {
+            const password = document.getElementById("password").value;
+            const correctPassword = "gergoalegjobb"; // Példa jelszó
+            if (password === correctPassword) {
+                document.getElementById("adminContent").style.display = "block";
+                document.getElementById("userData").style.display = "none";
+                closeModal();
+            } else {
+                alert("Hibás jelszó! Kérlek, próbáld újra.");
+            }
+        }
+
+        document.getElementById("adminForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            for (let i = 1; i <= numFields; i++) {
+                const data = document.getElementById(`data${i}`).value;
+                localStorage.setItem(`data${i}`, data);
+            }
+            displaySavedData();
+            alert("Adatok mentve!");
+        });
+
+        document.getElementById("errorForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const errorDescription = document.getElementById("errorDescription").value;
+            const email = "ugergo0928@gmail.com";
+            const subject = "Hiba bejelentés";
+            const body = "Hiba leírása:\n" + errorDescription;
+            window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            closeErrorModal();
+        });
+
+        function displaySavedData() {
+            for (let i = 1; i <= numFields; i++) {
+                document.getElementById(`userData${i}`).textContent = localStorage.getItem(`data${i}`);
+            }
+        }
+
+        function injectFields() {
+            const userDataContainer = document.getElementById('userDataContainer');
+            const adminFormContainer = document.getElementById('adminFormContainer');
+
+            let userDataHtml = '';
+            let adminFormHtml = '';
+
+            for (let i = 1; i <= numFields; i++) {
+                if (i % 3 === 1) { // Start a new row every 3 fields
+                    userDataHtml += '<tr>';
+                    adminFormHtml += '<tr>';
+                }
+
+                userDataHtml += `
+                    <td>
+                        <label for="userData${i}">${fantasyNames[i - 1]}:</label>
+                        <span id="userData${i}"></span>
+                    </td>
+                `;
+                adminFormHtml += `
+                    <td>
+                        <label for="data${i}">${fantasyNames[i - 1]}:</label>
+                        <input type="text" id="data${i}" name="data${i}">
+                    </td>
+                `;
+
+                if (i % 3 === 0 || i === numFields) { // Close the row every 3 fields or at the last field
+                    userDataHtml += '</tr>';
+                    adminFormHtml += '</tr>';
+                }
+            }
+
+            userDataContainer.innerHTML = userDataHtml;
+            adminFormContainer.innerHTML = adminFormHtml;
+        }
+
+        window.onload = function() {
+            injectFields();
+            displaySavedData();
+            setInterval(displaySavedData, 3000); // Frissítés 3 másodpercenként
+        }
+    </script>
+</body>
+</html>
